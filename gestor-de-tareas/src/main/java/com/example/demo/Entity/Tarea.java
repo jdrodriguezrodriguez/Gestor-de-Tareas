@@ -29,5 +29,7 @@ public class Tarea{
 
     
 	private String estado;
+    
+    @Column(name = "fecha_limite")
 	private Date fechaLimite;
 }
