@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.Entity.Tarea;
@@ -32,8 +31,8 @@ public class TareaController {
     }
 
     @GetMapping
-    public List<Tarea> listarTareas(){
-        return tareaService.obtenerTareas();
+    public ResponseEntity<?> listarTareas(){
+        return ResponseEntity.ok(tareaService.obtenerTareas());
     }
 
     @PostMapping
@@ -44,24 +43,30 @@ public class TareaController {
             return ResponseEntity.ok(Map.of("Mensaje", "Tarea creada correctamente"));
 
         } catch (Exception e) {
-            ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
-        return null;
     }
 
     @GetMapping("/{tareaId}")
-    public @ResponseBody Tarea obtenerTareaPorId(@PathVariable int tareaId){
-        return tareaService.obtenerTareaPorId(tareaId);
+    public ResponseEntity<?> obtenerTareaPorId(@PathVariable int tareaId){
+        try {
+            return tareaService.obtenerTareaPorId(tareaId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error:" + e.getMessage());
+        }
     }
 
     @PutMapping("/{tareaId}")
-    public ResponseEntity<?> ActualizarTarea(@RequestBody Tarea tarea){
+    public ResponseEntity<?> ActualizarTarea(@PathVariable int tareaId, @RequestBody Tarea tarea){
         try{
-            tareaService.actualizarDatos(tarea.getTareaId(), tarea.getTitulo(), tarea.getDescripcion(), tarea.getEstado(), tarea.getFechaLimite());
+            tareaService.actualizarDatos(tareaId, tarea.getTitulo(), tarea.getDescripcion(), tarea.getEstadoEnum(), tarea.getFechaLimite());
             return ResponseEntity.ok(Map.of("Mensaje", "Tarea actualizada"));
 
         }catch(Exception e){
-            return ResponseEntity.badRequest().body("Error" + e.getMessage());
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
 
